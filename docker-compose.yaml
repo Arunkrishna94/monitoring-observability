@@ -1,0 +1,43 @@
+services:
+  # The "Brain" - Collects all data
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    volumes:
+      - ./otel-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+
+  # Metrics Storage
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  # Log Storage
+  loki:
+    image: grafana/loki:3.0.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+
+  # Visualization & AI UI
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph,traceqlEditor,autoNamespacing
+
+  sample-app:
+    image: grafana/k6:latest
+    # We map the scripts folder so k6 can find your load-test.js
+    volumes:
+      - ./scripts:/scripts
+    command: run /scripts/load-test.js
+    depends_on:
+      - otel-collector

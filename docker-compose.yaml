@@ -25,6 +25,7 @@ services:
       - "3100:3100"
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - ./loki-data:/tmp/loki  
     command: -config.file=/etc/loki/local-config.yaml
 
   # Visualization & AI UI
@@ -32,6 +33,9 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=flameGraph,traceqlEditor,autoNamespacing
 

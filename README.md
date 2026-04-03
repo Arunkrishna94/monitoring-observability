@@ -30,13 +30,30 @@ Prometheus      Loki           Debug Logs
 # 📁 Project Structure
 
 ```
-observability-poc/
-│── docker-compose.yaml
-│── loki-config.yaml
-│── otel-config.yaml
-│── prometheus.yaml
-│── scripts/
-│   └── load-test.js
+monitoring-observability/
+├── README.md                 # Documentation and setup guide
+├── docker-compose.yaml        # Container orchestration
+├── loki-config.yaml         # Loki log aggregation config
+├── otel-config.yaml         # OpenTelemetry collector config
+├── prometheus.yaml          # Prometheus metrics scraping config
+├── scripts/                # Utility and test scripts
+│   └── load-test.js       # k6 load testing script
+├── send_log.py            # Manual log injection script
+├── logs.json             # Sample log data format
+├── provisioning/          # Grafana auto-provisioning
+│   └── datasources/
+│       └── datasources.yaml
+├── grafana-data/         # Grafana persistent data
+│   ├── grafana.db       # Grafana SQLite database
+│   └── plugins/         # Installed Grafana plugins
+│       ├── grafana-exploretraces-app/
+│       ├── grafana-lokiexplore-app/
+│       ├── grafana-metricsdrilldown-app/
+│       └── grafana-pyroscope-app/
+└── loki-data/            # Loki log storage
+    ├── chunks/           # Compressed log data blocks
+    ├── tsdb-shipper-active/  # Active time-series data
+    └── wal/              # Write-ahead log for durability
 ```
 
 ---
@@ -58,7 +75,7 @@ observability-poc/
 ## 1️⃣ Clone / Navigate to Project
 
 ```bash
-cd ~/observability-poc
+cd ~/monitoring-observability
 ```
 
 ---
@@ -92,8 +109,8 @@ Expected:
 ## 4️⃣ Check Logs (if any issue)
 
 ```bash
-docker logs observability-poc_loki_1
-docker logs observability-poc_otel-collector_1
+docker logs monitoring-observability_loki_1
+docker logs monitoring-observability_otel-collector_1
 ```
 
 ---
@@ -133,9 +150,13 @@ http://prometheus:9090
 
 ## Add Loki
 
-1. Add → Loki
-2. URL:
+**Note:** Loki is automatically configured via provisioning!
 
+1. Go to → Settings → Data Sources
+2. Loki should already be listed as default
+3. URL: `http://loki:3100` (auto-configured)
+
+If manual setup needed:
 ```
 http://loki:3100
 ```
@@ -154,7 +175,17 @@ It:
 
 * Simulates 5 users
 * Runs for 10 minutes
-* Sends traffic to OpenTelemetry
+* Sends traffic to OpenTelemetry (http://otel-collector:4318/v1/traces)
+
+# 🧪 Manual Log Testing
+
+For testing log injection manually:
+
+```bash
+python3 send_log.py
+```
+
+This sends a sample log to OpenTelemetry Collector using the format in `logs.json`.
 
 ---
 
@@ -164,9 +195,10 @@ It:
 
 Current setup generates:
 
-* ✔ Metrics
-* ✔ Traces (dummy)
-* ❌ Real application logs (not yet)
+* ✔ Metrics (via OpenTelemetry → Prometheus)
+* ✔ Traces (via k6 load test)
+* ✔ Logs (via send_log.py or manual injection)
+* ❌ Real application logs (requires SDK integration)
 
 ---
 
@@ -214,11 +246,12 @@ This project helps understand:
 
 # 🔮 Next Improvements
 
-* Add **Tempo** for tracing
-* Add real application (Node.js / Java)
-* Add structured logging
-* Create Grafana dashboards
-* Add alerting rules
+* Add **Tempo** for distributed tracing
+* Add real application (Node.js / Java) with OTEL SDK
+* Create custom Grafana dashboards for metrics/logs
+* Add alerting rules (Prometheus/Loki)
+* Add log retention policies
+* Integrate with MongoDB backup monitoring
 
 ---
 

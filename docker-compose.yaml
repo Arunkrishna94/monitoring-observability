@@ -47,3 +47,14 @@ services:
     command: run /scripts/load-test.js
     depends_on:
       - otel-collector
+
+  # Trace Storage
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo UI/API
+      - "4317:4317"        # OTLP gRPC (internal)

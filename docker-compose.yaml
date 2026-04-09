@@ -15,6 +15,7 @@ services:
     image: prom/prometheus
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./prometheus-rules.yaml:/etc/prometheus/prometheus-rules.yaml
     ports:
       - "9090:9090"
 
@@ -36,6 +37,7 @@ services:
     volumes:
       - ./grafana-data:/var/lib/grafana
       - ./provisioning:/etc/grafana/provisioning
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=flameGraph,traceqlEditor,autoNamespacing
 
